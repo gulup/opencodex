@@ -278,7 +278,8 @@ export interface OcxProviderConfig {
   /**
    * Opt-in upstream Responses WebSocket transport for this provider. When true,
    * streaming POST turns to this provider's /v1/responses are dialed over
-   * wss and re-encoded to SSE, mirroring the canonical ChatGPT backend
+   * wss for HTTPS providers and re-encoded to SSE; HTTP providers continue
+   * using SSE. This mirrors the canonical ChatGPT backend
    * optimization for any OpenAI-compatible gateway that speaks the Responses
    * WebSocket protocol (for example an aggregator like sub2api whose WS ingress
    * is measurably faster than its SSE queue). Default false. Canonical ChatGPT
