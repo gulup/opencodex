@@ -570,6 +570,10 @@ export async function handleProviderRoutes(ctx: ManagementContext): Promise<Resp
     const providerError = providerManagementConfigError(name, body.provider)
       ?? providerEmptyToolOutputConfigError(name, body.provider);
     if (providerError) return jsonResponse({ error: providerError }, 400);
+    const rawProvider = body.provider as Record<string, unknown>;
+    if (rawProvider.upstreamWebsocket !== undefined && typeof rawProvider.upstreamWebsocket !== "boolean") {
+      return jsonResponse({ error: "upstreamWebsocket must be a boolean" }, 400);
+    }
     const serviceTierError = providerServiceTierConfigError(name, body.provider);
     if (serviceTierError) return jsonResponse({ error: serviceTierError }, 400);
     const prov = body.provider ? stripCodexRuntimeProviderFields(body.provider as OcxProviderConfig) : undefined;

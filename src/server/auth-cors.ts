@@ -619,9 +619,6 @@ export function providerManagementConfigError(name: unknown, provider: unknown):
   if (upstreamHttpVersionError) {
     return `provider ${JSON.stringify(redactSecretString(name))} ${upstreamHttpVersionError}`;
   }
-  if (raw.upstreamWebsocket !== undefined && typeof raw.upstreamWebsocket !== "boolean") {
-    return `provider ${JSON.stringify(redactSecretString(name))} upstreamWebsocket must be a boolean`;
-  }
   const modelCostsError = providerModelCostsConfigError(raw.modelCosts);
   if (modelCostsError) {
     // The provider name is caller-controlled and can be token-shaped; redact and JSON-escape
@@ -764,7 +761,6 @@ export function safeConfigDTO(config: OcxConfig): unknown {
       "noPenaltyModels",
       "noStructuredOutputModels",
       "upstreamHttpVersion",
-      "upstreamWebsocket",
       "autoToolChoiceOnlyModels",
       "preserveReasoningContentModels",
       "requiresReasoningPlaceholderModels",

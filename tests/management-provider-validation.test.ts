@@ -4074,7 +4074,7 @@ describe("provider transport option management contract (#1668, #2816)", () => {
     })).toContain("upstreamHttpVersion");
   });
 
-  test("upstreamWebsocket round-trips through POST, GET, PATCH, and the safe config DTO", async () => {
+  test("upstreamWebsocket round-trips through POST, GET, and PATCH", async () => {
     if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
     mkdirSync(TEST_DIR, { recursive: true });
     process.env.OPENCODEX_HOME = TEST_DIR;
@@ -4103,11 +4103,6 @@ describe("provider transport option management contract (#1668, #2816)", () => {
         upstreamWebsocket: true,
       }));
 
-      const dto = safeConfigDTO(loadConfig()) as {
-        providers?: Record<string, Record<string, unknown>>;
-      };
-      expect(dto.providers?.["ws-provider"]?.upstreamWebsocket).toBe(true);
-
       const invalid = await request("/api/providers?name=ws-provider", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -4124,19 +4119,21 @@ describe("provider transport option management contract (#1668, #2816)", () => {
       expect(cleared?.status).toBe(200);
       expect(liveConfig.providers["ws-provider"]?.upstreamWebsocket).toBe(false);
       expect(loadConfig().providers["ws-provider"]?.upstreamWebsocket).toBe(false);
-    });
-  });
 
-  test("providerManagementConfigError validates upstreamWebsocket as a boolean", () => {
-    expect(providerManagementConfigError("x", {
-      adapter: "openai-responses",
-      baseUrl: "https://api.example.test/v1",
-      upstreamWebsocket: "true",
-    })).toContain("upstreamWebsocket");
-    expect(providerManagementConfigError("x", {
-      adapter: "openai-responses",
-      baseUrl: "https://api.example.test/v1",
-      upstreamWebsocket: true,
-    })).toBeNull();
+      const invalidPost = await request("/api/providers", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "invalid-ws-provider",
+          provider: {
+            adapter: "openai-responses",
+            baseUrl: "https://api.example.test/v1",
+            upstreamWebsocket: "true",
+          },
+        }),
+      });
+      expect(invalidPost?.status).toBe(400);
+      expect(liveConfig.providers["invalid-ws-provider"]).toBeUndefined();
+    });
   });
 });

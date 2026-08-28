@@ -40,8 +40,6 @@ export interface WorkspaceProvider {
   liveModels?: boolean;
   /** Optional upstream HTTP version pin. Cursor defaults to HTTP/2 when omitted. */
   upstreamHttpVersion?: "auto" | "http1.1" | "h1" | "http2" | "h2";
-  /** Opt-in provider Responses WebSocket; only HTTPS endpoints can use WSS. */
-  upstreamWebsocket?: boolean;
   authMode?: "key" | "forward" | "oauth" | "local" | string;
   keyOptional?: boolean;
   /** Free pricing (may still require an API key). */

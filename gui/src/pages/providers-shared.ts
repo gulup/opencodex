@@ -10,7 +10,6 @@ export interface ProvidersConfig {
     models?: string[];
     liveModels?: boolean;
     upstreamHttpVersion?: "auto" | "http1.1" | "h1" | "http2" | "h2";
-    upstreamWebsocket?: boolean;
     reasoningWireFormat?: "gateway-object";
     authMode?: string;
     keyOptional?: boolean;

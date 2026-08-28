@@ -2342,6 +2342,4 @@ export const ja: Record<TKey, string> = {
   "models.aliasAuto": "自動",
   "models.aliasUser": "ユーザー",
   "models.aliasStale": "古い",
-  "pws.upstreamWebsocket": "Use upstream Responses WebSocket",
-  "pws.upstreamWebsocketDesc": "Use WSS for streaming Responses requests when the provider uses an HTTPS endpoint. Plain HTTP stays on SSE.",
 };

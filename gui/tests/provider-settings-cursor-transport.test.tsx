@@ -74,11 +74,6 @@ function transportSelect(container: HTMLElement): HTMLSelectElement | null {
     .find(select => Array.from(select.options).some(option => option.value === "http1.1")) ?? null;
 }
 
-function websocketCheckbox(container: HTMLElement): HTMLInputElement | null {
-  return Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
-    .find(input => input.parentElement?.textContent?.includes("Use upstream Responses WebSocket")) ?? null;
-}
-
 async function choose(select: HTMLSelectElement, value: "http2" | "http1.1"): Promise<void> {
   await act(async () => {
     Object.getOwnPropertyDescriptor(testWindow.HTMLSelectElement.prototype, "value")!.set!.call(select, value);
@@ -153,39 +148,5 @@ test("an unrelated Cursor settings save leaves the omitted HTTP/2 default omitte
 
   expect(patches).toHaveLength(1);
   expect(Object.hasOwn(patches[0]!, "upstreamHttpVersion")).toBe(false);
-  await act(async () => { root.unmount(); });
-});
-
-test("the upstream Responses WebSocket setting persists through provider settings", async () => {
-  const { root, container, patches } = await mountSettings({
-    name: "sub2api",
-    adapter: "openai-responses",
-    baseUrl: "https://sub2api.example.com/v1",
-    authMode: "key",
-  });
-  const checkbox = websocketCheckbox(container);
-  expect(checkbox).toBeTruthy();
-  expect(checkbox!.checked).toBe(false);
-  expect(checkbox!.disabled).toBe(false);
-
-  await act(async () => { checkbox!.click(); });
-  await save(container);
-
-  expect(patches).toHaveLength(1);
-  expect(patches[0]?.upstreamWebsocket).toBe(true);
-  await act(async () => { root.unmount(); });
-});
-
-test("the upstream Responses WebSocket setting is disabled for plain HTTP endpoints", async () => {
-  const { root, container, patches } = await mountSettings({
-    name: "local-gateway",
-    adapter: "openai-responses",
-    baseUrl: "http://127.0.0.1:8080/v1",
-    authMode: "local",
-  });
-  const checkbox = websocketCheckbox(container);
-  expect(checkbox).toBeTruthy();
-  expect(checkbox!.disabled).toBe(true);
-  expect(patches).toEqual([]);
   await act(async () => { root.unmount(); });
 });

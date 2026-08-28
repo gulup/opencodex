@@ -2344,6 +2344,4 @@ export const tr: Record<TKey, string> = {
   "models.aliasAuto": "otomatik",
   "models.aliasUser": "kullanıcı",
   "models.aliasStale": "eski",
-  "pws.upstreamWebsocket": "Use upstream Responses WebSocket",
-  "pws.upstreamWebsocketDesc": "Use WSS for streaming Responses requests when the provider uses an HTTPS endpoint. Plain HTTP stays on SSE.",
 };
