@@ -2343,4 +2343,6 @@ export const ko: Record<TKey, string> = {
   "models.aliasAuto": "자동",
   "models.aliasUser": "사용자",
   "models.aliasStale": "오래됨",
+  "pws.upstreamWebsocket": "Use upstream Responses WebSocket",
+  "pws.upstreamWebsocketDesc": "Use WSS for streaming Responses requests when the provider uses an HTTPS endpoint. Plain HTTP stays on SSE.",
 };

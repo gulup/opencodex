@@ -2308,4 +2308,6 @@ export const fr: Record<TKey, string> = {
   "models.aliasAuto": "auto",
   "models.aliasUser": "utilisateur",
   "models.aliasStale": "obsolète",
+  "pws.upstreamWebsocket": "Use upstream Responses WebSocket",
+  "pws.upstreamWebsocketDesc": "Use WSS for streaming Responses requests when the provider uses an HTTPS endpoint. Plain HTTP stays on SSE.",
 };

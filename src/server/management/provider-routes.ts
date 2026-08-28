@@ -241,6 +241,11 @@ function applyProviderPatchFields(
     }
     touched = true;
   }
+  if (Object.hasOwn(rawBody, "upstreamWebsocket")) {
+    if (typeof rawBody.upstreamWebsocket !== "boolean") return { error: "upstreamWebsocket must be a boolean" };
+    next.upstreamWebsocket = rawBody.upstreamWebsocket;
+    touched = true;
+  }
   // The Models page edits the catalog hints in place; keep them on the existing
   // provider mutation path so validation, cache invalidation, and convergence stay unified (#1073).
   if (Object.hasOwn(rawBody, "contextWindow")) {
@@ -469,6 +474,7 @@ export async function handleProviderRoutes(ctx: ManagementContext): Promise<Resp
       modelSupportsServiceTier: p.modelSupportsServiceTier,
       noStructuredOutputModels: p.noStructuredOutputModels,
       upstreamHttpVersion: p.upstreamHttpVersion,
+      upstreamWebsocket: p.upstreamWebsocket === true,
       authMode: p.authMode,
       apiKeyTransport: p.apiKeyTransport,
       disabled: p.disabled === true,

@@ -2306,4 +2306,6 @@ export const zhTW: Record<TKey, string> = {
   "models.aliasAuto": "自動",
   "models.aliasUser": "使用者",
   "models.aliasStale": "過期",
+  "pws.upstreamWebsocket": "Use upstream Responses WebSocket",
+  "pws.upstreamWebsocketDesc": "Use WSS for streaming Responses requests when the provider uses an HTTPS endpoint. Plain HTTP stays on SSE.",
 };

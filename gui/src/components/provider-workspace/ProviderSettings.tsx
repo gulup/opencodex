@@ -33,6 +33,14 @@ function effectiveCursorHttpVersion(value: WorkspaceItem["upstreamHttpVersion"])
   return value === "http1.1" || value === "h1" ? "http1.1" : "http2";
 }
 
+function isHttpsBaseUrl(value: string): boolean {
+  try {
+    return new URL(value.trim()).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function numberDraft(value: number | undefined): string { return value === undefined ? "" : String(value); }
 function positiveRpm(value: string): number | undefined {
   if (!value.trim()) return undefined;
@@ -80,6 +88,7 @@ export default function ProviderSettings({
   const [apiKeyTransport, setApiKeyTransport] = useState(item.apiKeyTransport ?? "x-api-key");
   const [note, setNote] = useState(item.note ?? "");
   const [allowPrivateNetwork, setAllowPrivateNetwork] = useState(item.allowPrivateNetwork ?? false);
+  const [upstreamWebsocket, setUpstreamWebsocket] = useState(item.upstreamWebsocket ?? false);
   const [liveModels, setLiveModels] = useState(savedLiveModels);
   const [cursorHttpVersion, setCursorHttpVersion] = useState<CursorHttpVersion>(savedCursorHttpVersion);
   const [saving, setSaving] = useState(false);
@@ -108,6 +117,7 @@ export default function ProviderSettings({
     setApiKeyTransport(item.apiKeyTransport ?? "x-api-key");
     setNote(item.note ?? "");
     setAllowPrivateNetwork(item.allowPrivateNetwork ?? false);
+    setUpstreamWebsocket(item.upstreamWebsocket ?? false);
     setLiveModels(savedLiveModels);
     setCursorHttpVersion(savedCursorHttpVersion);
     setPacingEnabled(item.requestPacing?.enabled === true);
@@ -117,7 +127,7 @@ export default function ProviderSettings({
     setMsg(null);
     setModeMsg(null);
     queueMicrotask(() => setEndpointChoice(matchChoiceId(baseUrlChoices, item.baseUrl)));
-  }, [item.adapter, item.baseUrl, item.defaultModel, item.authMode, item.apiKeyTransport, item.keyOptional, item.note, item.allowPrivateNetwork, savedLiveModels, savedCursorHttpVersion, item.requestPacing, baseUrlChoices]);
+  }, [item.adapter, item.baseUrl, item.defaultModel, item.authMode, item.apiKeyTransport, item.keyOptional, item.note, item.allowPrivateNetwork, item.upstreamWebsocket, savedLiveModels, savedCursorHttpVersion, item.requestPacing, baseUrlChoices]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Account mode syncs on its own: a mode PATCH refresh must not reset an in-progress
@@ -193,6 +203,7 @@ export default function ProviderSettings({
     || (adapter.trim() === "anthropic" && authMode === "key" && apiKeyTransport !== (item.apiKeyTransport ?? "x-api-key"))
     || note.trim() !== (item.note ?? "")
     || allowPrivateNetwork !== (item.allowPrivateNetwork ?? false)
+    || upstreamWebsocket !== (item.upstreamWebsocket ?? false)
     || liveModels !== savedLiveModels
     || (adapter.trim() === "cursor" && cursorHttpVersion !== savedCursorHttpVersion);
   const pacingDirty = pacingSignature(pacingDraft) !== pacingSignature(item.requestPacing);
@@ -221,6 +232,7 @@ export default function ProviderSettings({
   // Lock plain baseUrl for presets while loading or when there is no picker.
   // On fetch error, keep it editable so allowBaseUrlOverride providers are not trapped.
   const plainBaseUrlLocked = isPreset && choicesStatus !== "error";
+  const upstreamWebsocketAvailable = isHttpsBaseUrl(baseUrl);
 
   const save = async (): Promise<boolean> => {
     if (!onUpdateProvider) { setMsg({ ok: false, text: t("pws.updatesUnavailable") }); return false; }
@@ -254,6 +266,7 @@ export default function ProviderSettings({
         if (adapter.trim() === "cursor" && cursorHttpVersion !== savedCursorHttpVersion) {
           patch.upstreamHttpVersion = cursorHttpVersion === "http1.1" ? "http1.1" : null;
         }
+        if (upstreamWebsocket !== (item.upstreamWebsocket ?? false)) patch.upstreamWebsocket = upstreamWebsocket;
         if (supportsApiKeyTransport) patch.apiKeyTransport = apiKeyTransport;
         else if (item.apiKeyTransport !== undefined) patch.apiKeyTransport = "";
       }
@@ -299,7 +312,7 @@ export default function ProviderSettings({
     setAdapter(item.adapter); setBaseUrl(item.baseUrl);
     setDefaultModel(item.defaultModel ?? ""); setAuthMode(initialAuth);
     setApiKeyTransport(item.apiKeyTransport ?? "x-api-key");
-    setNote(item.note ?? ""); setAllowPrivateNetwork(item.allowPrivateNetwork ?? false); setLiveModels(savedLiveModels);
+    setNote(item.note ?? ""); setAllowPrivateNetwork(item.allowPrivateNetwork ?? false); setUpstreamWebsocket(item.upstreamWebsocket ?? false); setLiveModels(savedLiveModels);
     setCursorHttpVersion(savedCursorHttpVersion); setMsg(null);
     setPacingEnabled(item.requestPacing?.enabled === true); setPacingRpm(numberDraft(item.requestPacing?.requestsPerMinute));
     setPacingDelay(numberDraft(item.requestPacing?.minIntervalMs)); setPacingModels({ ...(item.requestPacing?.models ?? {}) });
@@ -458,6 +471,18 @@ export default function ProviderSettings({
       <label className="pwi-settings-field" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <input type="checkbox" checked={allowPrivateNetwork} onChange={e => setAllowPrivateNetwork(e.target.checked)} />
         <span className="pwi-settings-label">{t("pws.allowPrivateNetwork")}</span>
+      </label>
+      <label className="pwi-settings-field" style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+        <input
+          type="checkbox"
+          checked={upstreamWebsocket}
+          disabled={!upstreamWebsocketAvailable}
+          onChange={e => setUpstreamWebsocket(e.target.checked)}
+        />
+        <span>
+          <span className="pwi-settings-label">{t("pws.upstreamWebsocket")}</span>
+          <span className="muted text-label" style={{ display: "block", marginTop: 2 }}>{t("pws.upstreamWebsocketDesc")}</span>
+        </span>
       </label>
       <label className="pwi-settings-field" style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
         <input

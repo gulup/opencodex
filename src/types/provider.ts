@@ -276,6 +276,16 @@ export interface OcxProviderConfig {
   */
   upstreamHttpVersion?: UpstreamHttpVersion;
   /**
+   * Opt-in upstream Responses WebSocket transport for this provider. When true,
+   * streaming POST turns to this provider's /v1/responses are dialed over
+   * wss and re-encoded to SSE, mirroring the canonical ChatGPT backend
+   * optimization for any OpenAI-compatible gateway that speaks the Responses
+   * WebSocket protocol (for example an aggregator like sub2api whose WS ingress
+   * is measurably faster than its SSE queue). Default false. Canonical ChatGPT
+   * backend WS selection is independent of this flag.
+   */
+  upstreamWebsocket?: boolean;
+  /**
    * Google only. When `false`, the AI Studio (direct) path sends Gemini Flash ids
    * unchanged to the wire instead of applying the `-tiered` suffix (`gemini-3.7-flash`
    * -> `gemini-3.7-flash-tiered`). Set this to `false` when the configured upstream still
