@@ -543,6 +543,34 @@ describe("codexWsUpstreamFetch", () => {
     expect(FakeWebSocket.instances[0]!.closed).toBe(true);
   });
 
+  test("fails closed when response.done has no recognized terminal status", async () => {
+    const cases: Array<{ id: string; status?: string }> = [
+      { id: "r-missing" },
+      { id: "r-queued", status: "queued" },
+      { id: "r-unknown", status: "provider_future_state" },
+    ];
+    for (const response of cases) {
+      installFake(ws => {
+        ws.emit("open", {});
+        ws.emit("message", {
+          data: JSON.stringify({ type: "response.done", response }),
+        });
+      });
+      const upstream = await codexWsUpstreamFetch(CODEX_URL, streamingInit(), (() => {
+        throw new Error("fallback must not run after open");
+      }) as unknown as typeof fetch);
+
+      const text = await upstream.text();
+      expect(text).toContain("event: response.failed");
+      const payload = text
+        .split("\n")
+        .filter(line => line.startsWith("data: ") && line !== "data: [DONE]")
+        .map(line => JSON.parse(line.slice("data: ".length)))
+        .find(event => event.type === "response.failed");
+      expect(payload?.response?.status).toBe("failed");
+    }
+  });
+
   test("falls back to the HTTP fetch when the upgrade is rejected before open", async () => {
     installFake(ws => ws.close());
     const sentinel = new Response("sse-fallback", { status: 429 });

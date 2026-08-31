@@ -164,7 +164,8 @@ type ResponsesWsRelayEvent = {
  * Responses WebSocket uses `response.done` as its terminal event, while the
  * SSE Responses surface uses status-specific terminal events. Normalize the
  * WS-only discriminator before relaying so the existing SSE consumers can
- * settle the turn and the socket close cannot be mistaken for a drop.
+ * settle the turn and the socket close cannot be mistaken for a drop. Unknown
+ * or missing status values fail closed instead of being reported as success.
  */
 function normalizeResponsesWsRelayEvent(text: string): ResponsesWsRelayEvent | null {
   let payload: unknown;
@@ -182,12 +183,20 @@ function normalizeResponsesWsRelayEvent(text: string): ResponsesWsRelayEvent | n
   const status = response && typeof response === "object" && !Array.isArray(response)
     ? (response as Record<string, unknown>).status
     : undefined;
-  const type = status === "failed"
-    ? "response.failed"
-    : status === "incomplete" || status === "cancelled"
-      ? "response.incomplete"
-      : "response.completed";
-  return { type, text: JSON.stringify({ ...record, type }) };
+  const type = status === "completed"
+    ? "response.completed"
+    : status === "failed"
+      ? "response.failed"
+      : status === "incomplete" || status === "cancelled"
+        ? "response.incomplete"
+        : "response.failed";
+  const normalizedRecord: Record<string, unknown> = { ...record, type };
+  if (type === "response.failed" && status !== "failed") {
+    normalizedRecord.response = response && typeof response === "object" && !Array.isArray(response)
+      ? { ...(response as Record<string, unknown>), status: "failed" }
+      : { status: "failed" };
+  }
+  return { type, text: JSON.stringify(normalizedRecord) };
 }
 
 /**
