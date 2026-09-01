@@ -4136,4 +4136,73 @@ describe("provider transport option management contract (#1668, #2816)", () => {
       expect(liveConfig.providers["invalid-ws-provider"]).toBeUndefined();
     });
   });
+
+  test("POST overwrite preserves omitted upstreamWebsocket and honors explicit false", async () => {
+    if (existsSync(TEST_DIR)) rmSync(TEST_DIR, { recursive: true });
+    mkdirSync(TEST_DIR, { recursive: true });
+    process.env.OPENCODEX_HOME = TEST_DIR;
+    const liveConfig = makeConfig();
+    saveConfig(liveConfig);
+    await withRequest(liveConfig, async (request) => {
+      const create = await request("/api/providers", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "ws-overwrite",
+          provider: {
+            adapter: "openai-responses",
+            baseUrl: "https://api.example.test/v1",
+            upstreamWebsocket: true,
+          },
+        }),
+      });
+      expect(create?.status).toBe(200);
+
+      const omitted = await request("/api/providers", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "ws-overwrite",
+          provider: {
+            adapter: "openai-responses",
+            baseUrl: "https://api.example.test/v1",
+          },
+        }),
+      });
+      expect(omitted?.status).toBe(200);
+      expect(liveConfig.providers["ws-overwrite"]?.upstreamWebsocket).toBe(true);
+      expect(loadConfig().providers["ws-overwrite"]?.upstreamWebsocket).toBe(true);
+
+      const explicitFalse = await request("/api/providers", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "ws-overwrite",
+          provider: {
+            adapter: "openai-responses",
+            baseUrl: "https://api.example.test/v1",
+            upstreamWebsocket: false,
+          },
+        }),
+      });
+      expect(explicitFalse?.status).toBe(200);
+      expect(liveConfig.providers["ws-overwrite"]?.upstreamWebsocket).toBe(false);
+      expect(loadConfig().providers["ws-overwrite"]?.upstreamWebsocket).toBe(false);
+
+      const omittedAfterDisable = await request("/api/providers", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "ws-overwrite",
+          provider: {
+            adapter: "openai-responses",
+            baseUrl: "https://api.example.test/v1",
+          },
+        }),
+      });
+      expect(omittedAfterDisable?.status).toBe(200);
+      expect(liveConfig.providers["ws-overwrite"]?.upstreamWebsocket).toBe(false);
+      expect(loadConfig().providers["ws-overwrite"]?.upstreamWebsocket).toBe(false);
+    });
+  });
 });

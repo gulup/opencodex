@@ -614,6 +614,7 @@ export async function handleProviderRoutes(ctx: ManagementContext): Promise<Resp
     const submittedModelContextWindows = Object.hasOwn(prov, "modelContextWindows");
     const submittedModelAutoCompactTokenLimits = Object.hasOwn(prov, "modelAutoCompactTokenLimits");
     const submittedRequestPacing = Object.hasOwn(prov, "requestPacing");
+    const submittedUpstreamWebsocket = Object.hasOwn(prov, "upstreamWebsocket");
     // Same trap, one more field: DeepSeek carries a registry default of `true` for
     // annotateEmptyToolOutputs, so enrichment cannot distinguish "the client omitted it"
     // from "the registry supplied it" either. Without this sample, an unrelated edit that
@@ -651,6 +652,12 @@ export async function handleProviderRoutes(ctx: ManagementContext): Promise<Resp
     // an explicit `false` must survive, and `false` is falsy.
     if (!submittedAnnotateEmptyToolOutputs && existing?.annotateEmptyToolOutputs !== undefined) {
       prov.annotateEmptyToolOutputs = existing.annotateEmptyToolOutputs;
+    }
+    // The provider add/edit form may omit this transport option. Preserve the stored value
+    // during a full overwrite; PATCH remains the explicit mutation path, and `!== undefined`
+    // keeps an operator's explicit false from being treated as absent.
+    if (!submittedUpstreamWebsocket && existing?.upstreamWebsocket !== undefined) {
+      prov.upstreamWebsocket = existing.upstreamWebsocket;
     }
     if (existing?.modelContextWindows) {
       // When the client did send a map, its keys win and the user's other keys survive. When
